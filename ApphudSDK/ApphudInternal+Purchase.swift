@@ -207,6 +207,30 @@ extension ApphudInternal {
         }
     }
     
+    @available(iOS 15.0, *)
+    internal func purchaseV2(productId: String, product:ApphudProduct?, validate: Bool, callback: ((ApphudPurchaseResult) -> Void)?) {
+        if let apphudProduct = product, let skProduct = apphudProduct.appleProduct {
+            purchaseV2(product: skProduct, apphudProduct: apphudProduct, validate:validate, callback: callback)
+        } else {
+            if let apphudProduct = ApphudInternal.shared.allAvailableProducts.first(where: { $0.productId == productId }), let skProduct = apphudProduct.appleProduct {
+                purchaseV2(product: skProduct, apphudProduct: apphudProduct, validate:validate, callback: callback)
+            } else {
+//                apphudLog("Product with id \(productId) not found, re-fetching from App Store...")
+//                ApphudStoreKitWrapper.shared.fetchProduct(productId: productId) { product in
+//                    if let product = product {
+//                        self.purchase(product: product, apphudProduct: nil, validate: validate, callback: callback)
+//                    } else {
+//                        let message = "Unable to start payment because product identifier is invalid: [\([productId])]"
+//                        ApphudLoggerService.logError(message)
+//                        apphudLog(message, forceDisplay: true)
+//                        let result = ApphudPurchaseResult(nil, nil, nil, ApphudError(message: message))
+//                        callback?(result)
+//                    }
+//                }
+            }
+        }
+    }
+    
     @available(iOS 12.2, *)
     internal func purchasePromo(skProduct: SKProduct, apphudProduct: ApphudProduct?, discountID: String, callback: ((ApphudPurchaseResult) -> Void)?) {
         
@@ -234,6 +258,22 @@ extension ApphudInternal {
                 callback?(ApphudPurchaseResult(nil, nil, transaction, error))
             }
         }
+    }
+    
+    @available(iOS 15.0, *)
+    private func purchaseV2(product: Product, apphudProduct: ApphudProduct?, validate: Bool, callback: ((ApphudPurchaseResult) -> Void)?) {
+        
+//        ApphudStoreKitWrapper.shared.purchaseV2(product: product) { transaction, error in
+//            if let error = error as? SKError {
+               // ApphudLoggerService.paywallPaymentCancelled(apphudProduct?.paywallId, product.productIdentifier, error)
+//            }
+//            if validate {
+//                self.handleTransaction(product: product, transaction: transaction, error: error, apphudProduct: apphudProduct, callback: callback)
+//            } else {
+//                self.handleTransaction(product: product, transaction: transaction, error: error, apphudProduct: apphudProduct, callback: nil)
+//                callback?(ApphudPurchaseResult(nil, nil, transaction, error))
+//            }
+ //       }
     }
     
     @available(iOS 12.2, *)

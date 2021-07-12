@@ -347,6 +347,12 @@ final public class Apphud: NSObject {
         ApphudInternal.shared.purchase(productId: product.productId, product: product, validate: true, callback: callback)
     }
     
+    @available(iOS 15.0, *)
+    @objc(purchaseApphudProductV2:callback:)
+    public static func purchaseV2(_ product: ApphudProduct, callback: ((ApphudPurchaseResult) -> Void)?) {
+        ApphudInternal.shared.purchaseV2(productId: product.productId, product: product, validate: true, callback: callback)
+    }
+    
     /**
      Deprecated. Purchase product by product identifier.
      

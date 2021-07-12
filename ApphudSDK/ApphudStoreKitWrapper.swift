@@ -9,6 +9,10 @@
 import Foundation
 import StoreKit
 
+public enum StoreError: Error {
+    case failedVerification
+}
+
 internal typealias ApphudStoreKitProductsCallback = ([SKProduct]) -> Void
 internal typealias ApphudTransactionCallback = (SKPaymentTransaction, Error?) -> Void
 
@@ -62,6 +66,42 @@ internal class ApphudStoreKitWrapper: NSObject, SKPaymentTransactionObserver, SK
         ApphudUtils.shared.storeKitObserverMode = false
         let payment = SKMutablePayment(product: product)
         purchase(payment: payment, callback: callback)
+    }
+    
+    @available(iOS 15.0, *)
+    func purchaseV2(product: Product) async throws -> Transaction? {
+        //Begin a purchase.
+        let result = try await product.purchase()
+
+        switch result {
+        case .success(let verification):
+            let transaction = try checkVerified(verification)
+
+            //Deliver content to the user.
+            //await updatePurchasedIdentifiers(transaction)
+
+            //Always finish a transaction.
+            await transaction.finish()
+
+            return transaction
+        case .userCancelled, .pending:
+            return nil
+        default:
+            return nil
+        }
+    }
+    
+    @available(iOS 15.0, *)
+    func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+        //Check if the transaction passes StoreKit verification.
+        switch result {
+        case .unverified:
+            //StoreKit has parsed the JWS but failed verification. Don't deliver content to the user.
+            throw StoreError.failedVerification
+        case .verified(let safe):
+            //If the transaction is verified, unwrap and return it.
+            return safe
+        }
     }
 
     @available(iOS 12.2, *)

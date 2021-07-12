@@ -157,10 +157,41 @@ extension ApphudInternal {
                 self.cachePaywalls(paywalls: paywalls)
             }
             
+            // get storekitProducts
+            if #available(iOS 15.0, *) {
+                async {
+                    await self.requestAppleProducts(paywalls: paywalls)
+                }
+            }
+            
             self.performWhenStoreKitProductFetched {
                 self.updatePaywallsWithStoreKitProducts(paywalls: paywalls)
                 callback(paywalls, error)
             }
+        }
+    }
+    
+    @available(iOS 15.0, *)
+    func requestAppleProducts(paywalls:[ApphudPaywall]) async {
+        do {
+            let ids =  ["com.apphud.lifetime", "com.apphud.monthly", "com.apphud.weekly", "com.apphud.weekly2"]
+            let storeProducts = try await Product.products(for: Set(ids))
+            
+            paywalls.forEach { paywall in
+                paywall.products.forEach({ product in
+                    product.paywallId = paywall.id
+                    product.appleProduct = storeProducts.first(where: { $0.id == product.productId })
+                })
+            }
+            
+            for paywall in paywalls {
+                paywall.products.forEach({ product in
+                    print(product.appleProduct?.id)
+                })
+            }
+            
+        } catch {
+            print("Failed product request: \(error)")
         }
     }
     

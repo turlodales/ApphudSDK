@@ -8,6 +8,7 @@
 import Foundation
 import StoreKit
 
+@available(iOS 2.0, *)
 public class ApphudProduct: NSObject, Codable {
     
     /**
@@ -31,11 +32,25 @@ public class ApphudProduct: NSObject, Codable {
      May be `nil` if product identifier is invalid, or product is not available in App Store Connect.
      */
     public internal(set) var skProduct: SKProduct?
+
+    //computed property, which is always read-only
+    public internal(set) var _appleProduct: Any? = nil
+    @available(iOS 15.0, *)
+    public internal(set) var appleProduct: Product? {
+        get {
+            return _appleProduct as? Product
+        }
+        set {
+            _appleProduct = newValue
+        }
+    }
     
     /**
      Current ApphudProduct paywall identifier
      */
     public internal(set) var paywallId: String?
+    
+    
 
     
     // MARK: - Private
