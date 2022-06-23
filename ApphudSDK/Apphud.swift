@@ -695,4 +695,11 @@ final public class Apphud: NSObject {
     @objc public static func isSandbox() -> Bool {
         return apphudIsSandbox()
     }
+    
+    /**
+        Disables collection of location updates, if authorized. If your app doesn't use location services, then we do not collect location.
+     */
+    @objc public static func disableLocationCollection() {
+        ApphudUtils.shared.optOutOfLocationCollection = true
+    }
 }

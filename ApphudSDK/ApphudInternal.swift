@@ -18,7 +18,7 @@ internal typealias ApphudRetryLog = (count: Int, errorCode: Int)
 
 @available(OSX 10.14.4, *)
 @available(iOS 11.2, *)
-final class ApphudInternal: NSObject {
+final class ApphudInternal: ApphudLocationManager {
 
     internal static let shared = ApphudInternal()
     internal var httpClient: ApphudHttpClient?
@@ -393,6 +393,8 @@ final class ApphudInternal: NSObject {
 
         checkPendingRules()
 
+        checkLocationAuthorization()
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             if self.currentUser == nil {
                 self.continueToRegisteringUser()
