@@ -26,8 +26,8 @@ class ApphudLocationManager: NSObject, CLLocationManagerDelegate {
     var isUpdatingLocation = false
     
     internal func checkLocationAuthorization() {
-        guard CLLocationManager.locationServicesEnabled() else {return}
-        
+        guard CLLocationManager.locationServicesEnabled() else { return }
+        guard hasInfoPlistKey else { return }
         guard location == nil else { return }
         
         if #available(iOS 14.0, *) {
@@ -37,6 +37,20 @@ class ApphudLocationManager: NSObject, CLLocationManagerDelegate {
         } else {
             
         }
+    }
+    
+    private var isIPhone: Bool {
+        #if os(iOS)
+            return UIDevice.current.userInterfaceIdiom == .phone
+        #else
+            return false
+        #endif
+    }
+    
+    private var hasInfoPlistKey: Bool {
+        guard let infoPlist = Bundle.main.infoDictionary else {return false}
+        
+        return infoPlist["NSLocationAlwaysAndWhenInUseUsageDescription"] != nil || infoPlist["NSLocationWhenInUseUsageDescription"] != nil
     }
     
     private func fetchLocationUpdates() {
