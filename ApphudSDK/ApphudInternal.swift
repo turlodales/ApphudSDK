@@ -392,7 +392,8 @@ final class ApphudInternal: NSObject {
         let minCheckInterval: Double = 60
 
         checkPendingRules()
-
+        checkForNewTransactions()
+        
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             if self.currentUser == nil {
                 self.continueToRegisteringUser()

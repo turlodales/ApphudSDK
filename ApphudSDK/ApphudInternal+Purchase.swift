@@ -14,6 +14,49 @@ extension ApphudInternal {
 
     // MARK: - Main Purchase and Submit Receipt methods
 
+    internal func handleTransactionIdentifer(id: UInt64, purchaseDate: Date, productID: String) {
+        apphudLog("found transaction with ID: \(id), purchase date: \(purchaseDate)", logLevel: .debug)
+        // call new submit receipt method , where instead of SKPaymentTransaction object there are separate parameters, like transaction id, product id, etc.
+        // force send receipt in this case
+    }
+
+    internal func checkForNewTransactions() {
+        if #available(iOS 15.0, *) {
+            Task.init(operation: {
+                for await verificationResult in Transaction.currentEntitlements {
+                        switch verificationResult {
+                        case .verified(let transaction):
+                            let id = transaction.id
+                            let purchaseDate = transaction.purchaseDate
+                            let productId = transaction.productID
+                            let expiresDate = transaction.expirationDate
+                            let refundDate = transaction.revocationDate
+                            let iapType = transaction.productType
+                            let upgrade = transaction.isUpgraded
+                            
+                            var hasActiveTransaction = false
+                            
+                            if iapType == .autoRenewable && expiresDate != nil && expiresDate! > Date() && refundDate == nil && upgrade == false {
+                                hasActiveTransaction = true
+                            }
+                            if iapType != .autoRenewable && purchaseDate > Date().addingTimeInterval(-86_400*2) {
+                                hasActiveTransaction = true
+                            }
+                            
+                            let isFree = !Apphud.hasPremiumAccess()
+                            
+                            if isFree && hasActiveTransaction {
+                                handleTransactionIdentifer(id: id, purchaseDate: purchaseDate, productID: productId)
+                            }
+                            
+                        case .unverified(_, _):
+                            break
+                        }
+                }
+            })
+        }
+    }
+    
     internal func restorePurchases(callback: @escaping ([ApphudSubscription]?, [ApphudNonRenewingPurchase]?, Error?) -> Void) {
         self.restorePurchasesCallback = { subs, purchases, error in
             if error != nil { ApphudStoreKitWrapper.shared.restoreTransactions() }
