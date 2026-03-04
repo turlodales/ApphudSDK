@@ -374,10 +374,17 @@ extension ApphudInternal {
     }
 
     internal func flushUserProperties(force: Bool, completion: ((Bool) -> Void)? = nil) {
+        let completeOnMain: (Bool) -> Void = { result in
+            guard let completion else { return }
+            Task { @MainActor in
+                completion(result)
+            }
+        }
+
         Task {
             let values = await self.preparePropertiesParams(isAudience: force)
             guard let params = values.0, let properties = values.1 else {
-                completion?(false)
+                completeOnMain(false)
                 return
             }
 
@@ -395,7 +402,7 @@ extension ApphudInternal {
                     apphudLog("User Properties update failed: \(error?.localizedDescription ?? "") with code: \(code)")
                 }
 
-                completion?(result)
+                completeOnMain(result)
             }
         }
     }
