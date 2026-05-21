@@ -57,7 +57,15 @@ public class ApphudPurchaseResult: NSObject {
      Indicates whether the payment was cancelled by user.
     */
     public var userCanceled: Bool {
-        (error as? SKError)?.code == .paymentCancelled
+        if (error as? SKError)?.code == .paymentCancelled {
+            return true
+        }
+        if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
+            if let storeKitError = error as? StoreKitError, case .userCancelled = storeKitError {
+                return true
+            }
+        }
+        return false
     }
 
     // MARK: - Private methods

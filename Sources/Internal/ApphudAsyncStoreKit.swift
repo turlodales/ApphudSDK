@@ -107,6 +107,7 @@ internal class ApphudAsyncStoreKit {
             #endif
 
             var transaction: StoreKit.Transaction?
+            var purchaseError: Error?
 
             switch result {
             case .success(.verified(let trx)):
@@ -115,8 +116,9 @@ internal class ApphudAsyncStoreKit {
                 transaction = trx
             case .pending:
                 break
-                case .userCancelled:
+            case .userCancelled:
                 ApphudLoggerService.shared.paywallPaymentCancelled(paywallId: apphudProduct?.paywallId, placementId: apphudProduct?.placementId, product: product)
+                purchaseError = StoreKitError.userCancelled
             default:
                 break
             }
@@ -128,7 +130,7 @@ internal class ApphudAsyncStoreKit {
             self.isPurchasing = false
             isPurchasing?.wrappedValue = false
 
-            return ApphudInternal.shared.asyncPurchaseResult(product: product, transaction: transaction, error: nil)
+            return ApphudInternal.shared.asyncPurchaseResult(product: product, transaction: transaction, error: purchaseError)
 
         } catch {
             ApphudLoggerService.shared.paywallPaymentError(paywallId: apphudProduct?.paywallId, placementId: apphudProduct?.placementId, productId: product.id, error: error.apphudErrorMessage())
