@@ -29,6 +29,7 @@ extension ApphudInternal {
 
         do {
             let response = try decoder.decode(ApphudUserResponse<ApphudUser>.self, from: data)
+            ApphudHttpClient.shared.updateConnectDomainUrl(from: response.data.meta)
             await MainActor.run {
                 currentUser = response.data.results
             }
@@ -470,6 +471,10 @@ extension ApphudInternal {
 
 extension ApphudInternal {
     var appInstallationDate: Int? {
+        if let overridenInstallationdate = UserDefaults.standard.object(forKey: "apphud_installation_date") as? Int {
+            return overridenInstallationdate
+        }
+        
         guard let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).last,
               let attributes = try? FileManager.default.attributesOfItem(atPath: documentsURL.path)
         else { return nil }
