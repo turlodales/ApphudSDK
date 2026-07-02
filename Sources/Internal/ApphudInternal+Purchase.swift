@@ -341,12 +341,14 @@ extension ApphudInternal {
             }
         }
         
+        #if os(iOS)
         if hasMadePurchase {
             let ruleID = await MainActor.run { ApphudScreensManager.shared.pendingRule()?.id }
             if let ruleID {
                 params["rule_id"] = ruleID
             }
         }
+        #endif
 
         purchasingProduct = nil
 
