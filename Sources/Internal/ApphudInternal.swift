@@ -452,11 +452,23 @@ final class ApphudInternal: NSObject {
         var delay: TimeInterval = 0
 
         let serverIsUnreachable = [NSURLErrorCannotConnectToHost, NSURLErrorTimedOut, 500, 502, 503].contains(errorCode)
+        let hostUnreachable = [NSURLErrorCannotConnectToHost, NSURLErrorTimedOut, NSURLErrorCannotFindHost, NSURLErrorDNSLookupFailed, NSURLErrorSecureConnectionFailed].contains(errorCode)
 
         userRegisterRetries.count += 1
         userRegisterRetries.errorCode = errorCode
 
         let maxAttempts = min(self.customRegistrationAttemptsCount ?? APPHUD_DEFAULT_RETRIES, APPHUD_DEFAULT_RETRIES)
+
+        // The main gateway host is unreachable (e.g. blocked in certain regions). Try to fetch an
+        // alternative host from the remote fallback file and, if switched, retry registration immediately.
+        if hostUnreachable {
+            Task { @MainActor in
+                if await self.httpClient?.loadFallbackHostIfNeeded() == true {
+                    NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(self.registerUser), object: nil)
+                    self.registerUser()
+                }
+            }
+        }
 
         if serverIsUnreachable && (userRegisterRetries.count >= maxAttempts || Date().timeIntervalSince(initDate) > APPHUD_MAX_INITIAL_LOAD_TIME) {
             executeFallback(callback: nil)
@@ -693,10 +705,11 @@ final class ApphudInternal: NSObject {
 
                 if result, let dataDict = response?["data"] as? [String: Any], let notifArray = dataDict["results"] as? [[String: Any]], let notifDict = notifArray.first, var ruleDict = notifDict["rule"] as? [String: Any] {
                     let properties = notifDict["properties"] as? [String: Any]
+                    let paywallIdentifierCandidate = properties?["paywall_identifier"] as? String
                     ruleDict = ruleDict.merging(properties ?? [:], uniquingKeysWith: {_, new in new})
                     let rule = ApphudRule(dictionary: ruleDict)
                     Task { @MainActor in
-                        ApphudScreensManager.shared.handleRule(rule: rule)
+                        ApphudScreensManager.shared.handleRule(rule: rule, paywallIdentifier: paywallIdentifierCandidate)
                     }
                 }
             })

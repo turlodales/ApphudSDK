@@ -27,6 +27,7 @@ public typealias ApphudBoolCallback = ((Bool) -> Void)
     case appleAdsAttribution
     case branch
     case firebase
+    case google
     case facebook
     case singular
     case tenjin
@@ -61,6 +62,8 @@ public typealias ApphudBoolCallback = ((Bool) -> Void)
             return "tiktok"
         case .voluum:
             return "voluum"
+        case .google:
+            return "google"
         default:
             return "Unavailable"
         }
@@ -68,7 +71,7 @@ public typealias ApphudBoolCallback = ((Bool) -> Void)
 }
 
 internal enum ApphudIAPCodingKeys: String, CodingKey {
-    case id, expiresAt, productId, cancelledAt, startedAt, inRetryBilling, autorenewEnabled, introductoryActivated, environment, local, groupId, status, kind, originalTransactionId, transactionId, isConsumable
+    case id, expiresAt, productId, cancelledAt, startedAt, inRetryBilling, autorenewEnabled, introductoryActivated, environment, local, groupId, status, kind, originalTransactionId, transactionId, isConsumable, autorenewProductId
 }
 
 internal enum ApphudIAPKind: String {
