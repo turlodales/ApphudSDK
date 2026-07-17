@@ -676,7 +676,7 @@ final class ApphudInternal: NSObject {
                                                        "timestamp": Date().currentTimestamp,
                                                        "environment": environment].merging(params, uniquingKeysWith: {(current, _) in current})
 
-            self.httpClient?.startRequest(path: .events, apiVersion: .APIV1, params: final_params, method: .post, retry: true, callback: callback)
+            self.httpClient?.startRequest(path: .events, apiVersion: .APIV2, params: final_params, method: .post, retry: true, callback: callback)
         }
     }
 
