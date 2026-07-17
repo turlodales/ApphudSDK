@@ -86,7 +86,7 @@ extension ApphudPaywallScreenController: WKUIDelegate {
     private func trackRuleScreenPresentedIfNeeded() {
         guard !didTrackRuleScreenPresented, let rule else { return }
         didTrackRuleScreenPresented = true
-        ApphudInternal.shared.trackEvent(params: ["rule_id": rule.id, "screen_id": ruleScreenID, "name": "$screen_presented"]) {}
+        ApphudInternal.shared.trackEvent(params: ["rule_id": rule.id, "screen_id": ruleScreenID, "paywall_id": paywall.id, "name": "$screen_presented"]) {}
     }
 
     private func readRuleNotificationsIfNeeded() {
@@ -98,7 +98,7 @@ extension ApphudPaywallScreenController: WKUIDelegate {
     private func trackRulePurchaseIfNeeded(product: ApphudProduct, result: ApphudPurchaseResult) {
         guard let rule else { return }
 
-        var params: [String: AnyHashable] = ["rule_id": rule.id, "name": "$purchase", "screen_id": ruleScreenID]
+        var params: [String: AnyHashable] = ["rule_id": rule.id, "name": "$purchase", "screen_id": ruleScreenID, "paywall_id": paywall.id]
         var properties: [String: AnyHashable] = ["product_id": product.productId]
 
         if let trx = result.transaction, trx.transactionState == .purchased, let transactionID = trx.transactionIdentifier {
