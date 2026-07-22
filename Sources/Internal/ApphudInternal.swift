@@ -705,11 +705,11 @@ final class ApphudInternal: NSObject {
 
                 if result, let dataDict = response?["data"] as? [String: Any], let notifArray = dataDict["results"] as? [[String: Any]], let notifDict = notifArray.first, var ruleDict = notifDict["rule"] as? [String: Any] {
                     let properties = notifDict["properties"] as? [String: Any]
-                    let paywallIdentifierCandidate = properties?["paywall_identifier"] as? String
+                    let preferredID = (properties?["paywall_id"] as? String) ?? (properties?["paywall_identifier"] as? String)
                     ruleDict = ruleDict.merging(properties ?? [:], uniquingKeysWith: {_, new in new})
                     let rule = ApphudRule(dictionary: ruleDict)
                     Task { @MainActor in
-                        ApphudScreensManager.shared.handleRule(rule: rule, paywallIdentifier: paywallIdentifierCandidate)
+                        ApphudScreensManager.shared.handleRule(rule: rule, paywallID: preferredID)
                     }
                 }
             })
@@ -720,7 +720,7 @@ final class ApphudInternal: NSObject {
     internal func readAllNotifications(for ruleID: String) {
         performWhenUserRegistered {
             let params = ["device_id": self.currentDeviceID, "rule_id": ruleID] as [String: String]
-            self.httpClient?.startRequest(path: .readNotifications, apiVersion: .APIV2, params: params, method: .post, callback: { (_, _, _, _, _, _, _) in
+        self.httpClient?.startRequest(path: .readNotifications, apiVersion: .APIV2, params: params, method: .post, callback: { (_, _, _, _, _, _, _) in
             })
         }
     }

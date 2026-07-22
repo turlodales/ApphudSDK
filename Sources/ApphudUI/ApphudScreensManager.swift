@@ -131,7 +131,7 @@ internal class ApphudScreensManager {
 
         ApphudInternal.shared.trackEvent(params: ["rule_id": rule_id, "name": "$push_opened"]) {}
 
-        if apsInfo?["screen_id"] != nil {
+        if apsInfo?["screen_id"] != nil || apsInfo?["paywall_id"] != nil || apsInfo?["paywall_identifier"] != nil {
             handleRule(ruleID: rule_id, data: apsInfo as? [String: Any])
         }
 
@@ -145,11 +145,11 @@ internal class ApphudScreensManager {
     internal func handleRule(ruleID: String, data: [String: Any]?) {
         let dict = ["id": ruleID].merging(data ?? [:], uniquingKeysWith: {_, new in new})
         let rule = ApphudRule(dictionary: dict)
-        let paywallIdentifierCandidate = data?["paywall_identifier"] as? String
-        self.handleRule(rule: rule, paywallIdentifier: paywallIdentifierCandidate)
+        let preferredID = (data?["paywall_id"] as? String) ?? (data?["paywall_identifier"] as? String)
+        self.handleRule(rule: rule, paywallID: preferredID)
     }
 
-    internal func handleRule(rule: ApphudRule, paywallIdentifier: String?) {
+    internal func handleRule(rule: ApphudRule, paywallID: String?) {
 
         guard self.pendingController == nil else { return }
         
@@ -158,18 +158,20 @@ internal class ApphudScreensManager {
             apphudLog("apphudShouldPerformRule returned false for rule \(rule.rule_name), exiting", forceDisplay: true)
             return
         }
-        
-        if let paywallIdentifier {
-            ApphudInternal.shared.fetchPaywall(identifier: paywallIdentifier, forceRefresh: false) { paywall, error in
+
+        // A new Rule screen is identified by the presence of either paywall_id or paywall_identifier.
+        // When both are missing this is a legacy screen and must be handled via screen_id.
+        if let paywallID {
+            ApphudInternal.shared.fetchPaywall(identifier: paywallID, forceRefresh: false) { paywall, error in
                 guard let paywall else {
-                    apphudLog("Failed to handle rule with paywall identifier: \(paywallIdentifier), error: \(error?.localizedDescription ?? "paywall not found")")
+                    apphudLog("Failed to handle rule with paywall: \(paywallID), error: \(error?.localizedDescription ?? "paywall not found")")
                     return
                 }
 
                 Apphud.fetchPaywallScreen(paywall) { result in
                     switch result {
                     case .error(let error):
-                        apphudLog("Failed to handle rule with paywall identifier: \(paywallIdentifier), error: \(error.localizedDescription)")
+                        apphudLog("Failed to handle rule with paywall: \(paywallID), error: \(error.localizedDescription)")
                     case .success(let controller):
                         controller.rule = rule
                         self.pendingController = controller
