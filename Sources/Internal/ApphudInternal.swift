@@ -65,6 +65,8 @@ final class ApphudInternal: NSObject {
     // MARK: - User registering properties
     internal var currentDeviceID: String = ""
     internal var currentUserID: String = ""
+    /// Nonisolated mirror of `currentUser?.internalId` for use from HTTP client (non-MainActor).
+    internal var currentCustomerID: String = ""
     internal var storefrontCurrency: ApphudCurrency?
 
     internal var isPremium: Bool = false
@@ -72,6 +74,7 @@ final class ApphudInternal: NSObject {
 
     @MainActor internal var currentUser: ApphudUser? {
         didSet {
+            self.currentCustomerID = currentUser?.internalId ?? ""
             self.updatePremiumStatus(user: currentUser)
         }
     }

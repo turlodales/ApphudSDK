@@ -280,7 +280,11 @@ public class ApphudHttpClient {
     internal func makeScreenRequest(screenID: String) -> URLRequest? {
 
         let deviceID: String = ApphudInternal.shared.currentDeviceID
-        let urlString = "\(domainUrlString)/preview_screen/\(screenID)?api_key=\(apiKey)&locale=\(Locale.current.identifier)&device_id=\(deviceID)&v=2"
+        var urlString = "\(domainUrlString)/preview_screen/\(screenID)?api_key=\(apiKey)&locale=\(Locale.current.identifier)&device_id=\(deviceID)&v=2"
+        let customerId = ApphudInternal.shared.currentCustomerID
+        if !customerId.isEmpty {
+            urlString += "&customer_id=\(customerId)"
+        }
 
         if let url = URL(string: urlString) {
             return requestInstance(url: url)
@@ -296,10 +300,14 @@ public class ApphudHttpClient {
         var url: URL?
 
         let urlString = "\(domainUrlString)/\(apiVersion.rawValue)/\(path)"
+        let customerId = ApphudInternal.shared.currentCustomerID
 
         if method == .get {
             var components = URLComponents(string: urlString)
             var items: [URLQueryItem] = [URLQueryItem(name: "api_key", value: apiKey)]
+            if !customerId.isEmpty {
+                items.append(URLQueryItem(name: "customer_id", value: customerId))
+            }
             if let requestParams = params {
                 for key in requestParams.keys {
                     items.append(URLQueryItem(name: key, value: (requestParams[key] as? LosslessStringConvertible)?.description))
@@ -333,6 +341,9 @@ public class ApphudHttpClient {
 
         if method != .get {
             var finalParams: [String: Any] = ["api_key": apiKey]
+            if !customerId.isEmpty {
+                finalParams["customer_id"] = customerId
+            }
             if params != nil {
                 finalParams.merge(params!, uniquingKeysWith: {$1})
             }
